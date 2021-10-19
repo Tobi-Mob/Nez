@@ -168,7 +168,7 @@ namespace Nez
 						return;
 				}
 
-				var targetBounds = _targetEntity.GetComponent<Collider>().Bounds;
+				var targetBounds = _targetCollider.Bounds;
 				if (!_worldSpaceDeadzone.Contains(targetBounds))
 				{
 					// x-axis
@@ -188,6 +188,12 @@ namespace Nez
 
 		public void Follow(Entity targetEntity, CameraStyle cameraStyle = CameraStyle.CameraWindow)
 		{
+			if (targetEntity != _targetEntity)
+			{
+				// new entity -> invalidate cached collider
+				_targetCollider = null;
+			}
+			
 			_targetEntity = targetEntity;
 			_cameraStyle = cameraStyle;
 			var cameraBounds = Camera.Bounds;
