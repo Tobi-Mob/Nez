@@ -46,8 +46,6 @@ namespace Nez
 		/// </summary>
 		public RectangleF Deadzone;
 
-		private Measurement _deadzoneMeasurement = Measurement.ScaledCameraBounds;
-
 		/// <summary>
 		/// offset from the screen center that the camera will focus on
 		/// </summary>
@@ -67,6 +65,7 @@ namespace Nez
 		Collider _targetCollider;
 		Vector2 _desiredPositionDelta;
 		CameraStyle _cameraStyle;
+		Measurement _deadzoneMeasurement;
 		RectangleF _worldSpaceDeadzone;
 
 
@@ -106,8 +105,10 @@ namespace Nez
 		public virtual void Update()
 		{
 			// calculate the current deadzone around the camera
+			// Camera.Position is the center of the camera view
 			if (_deadzoneMeasurement == Measurement.FixedPixel)
 			{
+				//Calculate in Pixel Units
 				_worldSpaceDeadzone.X = Camera.Position.X + Deadzone.X + FocusOffset.X;
 				_worldSpaceDeadzone.Y = Camera.Position.Y + Deadzone.Y + FocusOffset.Y;
 				_worldSpaceDeadzone.Width = Deadzone.Width;
@@ -115,11 +116,12 @@ namespace Nez
 			}
 			else
 			{
-				var screen = Camera.Bounds.Size;
-				_worldSpaceDeadzone.X = Camera.Position.X - (screen.X * Deadzone.X) + FocusOffset.X;
-				_worldSpaceDeadzone.Y = Camera.Position.Y - (screen.Y * Deadzone.Y) + FocusOffset.Y;
-				_worldSpaceDeadzone.Width = screen.X * Deadzone.Width;
-				_worldSpaceDeadzone.Height = screen.Y * Deadzone.Height;
+				//Scale everything according to Camera Bounds
+				var screenSize = Camera.Bounds.Size;
+				_worldSpaceDeadzone.X = Camera.Position.X - (screenSize.X * Deadzone.X) + FocusOffset.X;
+				_worldSpaceDeadzone.Y = Camera.Position.Y - (screenSize.Y * Deadzone.Y) + FocusOffset.Y;
+				_worldSpaceDeadzone.Width = screenSize.X * Deadzone.Width;
+				_worldSpaceDeadzone.Height = screenSize.Y * Deadzone.Height;
 			}
 
 			if (_targetEntity != null)
@@ -176,15 +178,11 @@ namespace Nez
 				var targetY = _targetEntity.Transform.Position.Y;
 
 				// x-axis
-				if (_worldSpaceDeadzone.X > targetX)
-					_desiredPositionDelta.X = targetX - _worldSpaceDeadzone.X;
-				else if (_worldSpaceDeadzone.X < targetX)
+				if (_worldSpaceDeadzone.X > targetX || _worldSpaceDeadzone.X < targetX)
 					_desiredPositionDelta.X = targetX - _worldSpaceDeadzone.X;
 
 				// y-axis
-				if (_worldSpaceDeadzone.Y < targetY)
-					_desiredPositionDelta.Y = targetY - _worldSpaceDeadzone.Y;
-				else if (_worldSpaceDeadzone.Y > targetY)
+				if (_worldSpaceDeadzone.Y < targetY || _worldSpaceDeadzone.Y > targetY)
 					_desiredPositionDelta.Y = targetY - _worldSpaceDeadzone.Y;
 			}
 			else
@@ -222,7 +220,8 @@ namespace Nez
 			_deadzoneMeasurement = deadzoneMeasurement;
 			
 			var cameraBounds = Camera.Bounds;
-
+			
+			// Set a default deadzone to match common usecases
 			switch (_cameraStyle)
 			{
 				case CameraStyle.CameraWindow:
