@@ -258,12 +258,7 @@ namespace Nez
 		/// <param name="height">Height.</param>
 		public void SetCenteredDeadzone(int width, int height)
 		{
-			Insist.IsFalse(Camera == null,
-				"camera is null. We cant get its bounds if its null. Either set it or wait until after this Component is added to the Entity.");
-			var cameraBounds = Camera.Bounds;
-			
 			Deadzone = new RectangleF(-width / 2, -height / 2, width, height);
-			
 			_deadzoneMeasurement = Measurement.FixedPixel;
 		}
 		
@@ -274,11 +269,7 @@ namespace Nez
 		/// <param name="height">Height in % of screenspace. Between 0.0 and 1.0</param>
 		public void SetCenteredDeadzoneInScreenspace(float width, float height)
 		{
-			Insist.IsFalse(Camera == null,
-				"camera is null. We cant get its bounds if its null. Either set it or wait until after this Component is added to the Entity.");
-			var cameraBounds = Camera.Bounds;
 			Deadzone = new RectangleF(-width / 2, -height / 2, width, height);
-			
 			_deadzoneMeasurement = Measurement.ScaledCameraBounds;
 		}
 	}
