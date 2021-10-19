@@ -19,15 +19,15 @@ namespace Nez
 		{
 			/// <summary>
 			/// Size is measured in pixel.
-			/// Does not change with the <see cref="Camera.Zoom"/> level.
+			/// Does not change with the Camera <see cref="Camera.Bounds"/> and <see cref="Camera.Zoom"/> level.
 			/// </summary>
 			FixedPixel,
 			/// <summary>
-			/// Size is measured in % of Camera Screensize.
-			/// Where 1.0f equals the whole Screen and 0.5f is half the screen size.
-			/// Scales automatically with <see cref="Camera.Zoom"/> level.
+			/// Size is measured in % of Camera <see cref="Camera.Bounds"/>.
+			/// Where 1.0f equals the whole Camera Size and 0.5f is half the Camera size.
+			/// Scales automatically with the Camera <see cref="Camera.Bounds"/> and <see cref="Camera.Zoom"/> level.
 			/// </summary>
-			ScaledScreenSpace
+			ScaledCameraBounds
 		}
 
 		public Camera Camera;
@@ -38,14 +38,15 @@ namespace Nez
 		public float FollowLerp = 0.1f;
 
 		/// <summary>
-		/// when in <see cref="CameraStyle.CameraWindow"/> mode used as a bounding box around the camera position to allow movement within it without moving the camera.
+		/// when in <see cref="CameraStyle.CameraWindow"/> mode used as a bounding box around the camera position
+		/// to allow the targetEntity to movement inside it without moving the camera.
 		/// when in <see cref="CameraStyle.LockOn"/> mode only the deadzone x/y values are used as offset.
 		/// This is set to sensible defaults when you call <see cref="Follow"/> but you are
 		/// free to override <see cref="Deadzone"/> to get a custom deadzone directly or via the helper <see cref="SetCenteredDeadzone"/>.
 		/// </summary>
 		public RectangleF Deadzone;
 
-		private Measurement _deadzoneMeasurement = Measurement.ScaledScreenSpace;
+		private Measurement _deadzoneMeasurement = Measurement.ScaledCameraBounds;
 
 		/// <summary>
 		/// offset from the screen center that the camera will focus on
@@ -115,18 +116,24 @@ namespace Nez
 			else
 			{
 				var screen = Camera.Bounds.Size;
+				_worldSpaceDeadzone.X = Camera.Position.X - (screen.X * Deadzone.X) + FocusOffset.X;
+				_worldSpaceDeadzone.Y = Camera.Position.Y - (screen.Y * Deadzone.Y) + FocusOffset.Y;
 				_worldSpaceDeadzone.Width = screen.X * Deadzone.Width;
 				_worldSpaceDeadzone.Height = screen.Y * Deadzone.Height;
-
-				_worldSpaceDeadzone.X = Camera.Position.X - (_worldSpaceDeadzone.Width / 2) + FocusOffset.X;
-				_worldSpaceDeadzone.Y = Camera.Position.Y - (_worldSpaceDeadzone.Height / 2) + FocusOffset.Y;
 			}
 
 			if (_targetEntity != null)
 				UpdateFollow();
 
-			Camera.Position = Vector2.Lerp(Camera.Position, Camera.Position + _desiredPositionDelta, FollowLerp);
-			Camera.Entity.Transform.RoundPosition();
+			//if (_desiredPositionDelta.Length() > 1)
+			{
+				Camera.Position = Vector2.Lerp(Camera.Position, Camera.Position + _desiredPositionDelta, FollowLerp);
+				Camera.Entity.Transform.RoundPosition();
+			}
+			//else
+			{
+				//Camera.Position += _desiredPositionDelta;
+			}
 
 			if (MapLockEnabled)
 			{
@@ -215,7 +222,7 @@ namespace Nez
 			}
 		}
 
-		public void Follow(Entity targetEntity, CameraStyle cameraStyle = CameraStyle.CameraWindow, Measurement deadzoneMeasurement = Measurement.ScaledScreenSpace)
+		public void Follow(Entity targetEntity, CameraStyle cameraStyle = CameraStyle.CameraWindow, Measurement deadzoneMeasurement = Measurement.ScaledCameraBounds)
 		{
 			_targetEntity = targetEntity;
 			_cameraStyle = cameraStyle;
@@ -226,7 +233,7 @@ namespace Nez
 			switch (_cameraStyle)
 			{
 				case CameraStyle.CameraWindow:
-					if (_deadzoneMeasurement == Measurement.ScaledScreenSpace)
+					if (_deadzoneMeasurement == Measurement.ScaledCameraBounds)
 					{
 						var w = (1.0f / 6.0f);
 						var h = (1.0f / 3.0f);
@@ -240,7 +247,7 @@ namespace Nez
 					}
 					break;
 				case CameraStyle.LockOn:
-					if (_deadzoneMeasurement == Measurement.ScaledScreenSpace)
+					if (_deadzoneMeasurement == Measurement.ScaledCameraBounds)
 					{
 						Deadzone = RectangleF.Empty;
 					}
@@ -280,7 +287,7 @@ namespace Nez
 			var cameraBounds = Camera.Bounds;
 			Deadzone = new RectangleF(-width / 2, -height / 2, width, height);
 			
-			_deadzoneMeasurement = Measurement.ScaledScreenSpace;
+			_deadzoneMeasurement = Measurement.ScaledCameraBounds;
 		}
 	}
 }
