@@ -217,7 +217,6 @@ namespace Nez
 		{
 			_targetEntity = targetEntity;
 			_cameraStyle = cameraStyle;
-			_deadzoneMeasurement = deadzoneMeasurement;
 			
 			var cameraBounds = Camera.Bounds;
 			
@@ -226,27 +225,15 @@ namespace Nez
 			{
 				case CameraStyle.CameraWindow:
 					if (_deadzoneMeasurement == Measurement.ScaledCameraBounds)
-					{
-						var w = (1.0f / 6.0f);
-						var h = (1.0f / 3.0f);
-						Deadzone = new RectangleF(-w / 2, -h / 2, w, h);
-					}
+						SetCenteredDeadzoneInScreenspace(1.0f / 6.0f, 1.0f / 3.0f);
 					else
-					{
-						var w = (cameraBounds.Width / 6);
-						var h = (cameraBounds.Height / 3);
-						Deadzone = new RectangleF(-w / 2, -h / 2, w, h);
-					}
+						SetCenteredDeadzone(cameraBounds.Width / 6, cameraBounds.Height / 3);
 					break;
 				case CameraStyle.LockOn:
 					if (_deadzoneMeasurement == Measurement.ScaledCameraBounds)
-					{
-						Deadzone = RectangleF.Empty;
-					}
+						SetCenteredDeadzoneInScreenspace(0,0);
 					else
-					{
-						Deadzone = new RectangleF(-5, -5, 10, 10);	
-					}
+						SetCenteredDeadzone(-5, -5, 10, 10);
 					break;
 			}
 		}
