@@ -189,8 +189,8 @@ namespace Nez
 			}
 			else
 			{
-				// make sure we have a targetCollider for CameraWindow. If we dont bail out.
-				if (_targetCollider == null)
+				// make sure we have a targetCollider for CameraWindow attached to this Entity. If we dont bail out.
+				if (_targetCollider == null || _targetCollider.Entity != _targetEntity)
 				{
 					_targetCollider = _targetEntity.GetComponent<Collider>();
 					if (_targetCollider == null)
